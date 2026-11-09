@@ -446,6 +446,73 @@ function authBoot(){const a=sess()&&me();if(a)enter(a.email);else authUI(accs().
 function refresh(){calc();$('#ds').innerHTML=S.staff.map(x=>`<option value="${esc(x.c)}">${esc(x.nom+' '+x.pn)}</option>`).join('');dash();caisse();cmd();$('#dc').innerHTML=S.articles.map(a=>`<option value="${esc(a.c)}">${esc(a.n)}</option>`).join('');$('#du').innerHTML=[...new Set(S.articles.map(a=>a.u).filter(Boolean))].sort().map(n=>`<option value="${esc(n)}">`).join('');$('#dl').innerHTML=[...S.articles].map(a=>a.n).sort((a,b)=>a.localeCompare(b,'fr')).map(n=>`<option value="${esc(n)}">`).join('');G.forEach(g=>g.draw())}
 (function(){calc();refresh();const h0=location.hash.slice(1).replace(/[^a-z]/g,'');show(NAV.some(n=>n[0]===h0)?h0:'cmd')})();
 authBoot();
+ 
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+
+serve(async (req) => {
+  try {
+    const { question } = await req.json();
+
+    if (!question || typeof question !== "string") {
+      return new Response(
+        JSON.stringify({ error: "Question invalide" }),
+        { status: 400 }
+      );
+    }
+
+    const API_KEY = Deno.env.get("GOOGLE_API_KEY");
+    const CX = Deno.env.get("GOOGLE_CX");
+
+    if (!API_KEY || !CX) {
+      throw new Error("Clés Google manquantes");
+    }
+
+    const url = new URL(
+      "https://www.googleapis.com/customsearch/v1"
+    );
+
+    url.searchParams.set("key", API_KEY);
+    url.searchParams.set("cx", CX);
+    url.searchParams.set("q", question);
+    url.searchParams.set("num", "5");
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Erreur lors de la recherche Google");
+    }
+
+    const data = await response.json();
+
+    const results = (data.items || []).map((item: any) => ({
+      titre: item.title,
+      lien: item.link,
+      extrait: item.snippet
+    }));
+
+    return new Response(
+      JSON.stringify({
+        question,
+        resultats: results
+      }),
+      {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        error: "Impossible de rechercher la réponse.",
+        details: String(error)
+      }),
+      { status: 500 }
+    );
+  }
+});
+ 
 </script>
 </body>
 </html>
