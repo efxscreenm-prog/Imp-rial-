@@ -616,6 +616,11 @@ document.addEventListener("click", function (e) {
         GlobalLoader.show();
     }
 });
+
+ await avecLoader(async () => {
+    await chargerLesDonnees();
+}, "Chargement du tableau de bord...");
+ 
 </script>
 </body>
 </html>
