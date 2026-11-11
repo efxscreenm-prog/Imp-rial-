@@ -93,6 +93,9 @@ td.dc{position:sticky;right:0;background:var(--card);box-shadow:-8px 0 8px -8px 
     pointer-events: none;
     visibility: hidden;
 }
+ .global-loader.hidden {
+    display: none !important;
+ }
 
 .loader-content {
     text-align: center;
@@ -624,23 +627,14 @@ document.addEventListener("click", (e) => {
     GlobalLoader.show();
 });
 
- GlobalLoader.show();
-
-try {
-    const { data, error } = await supabase
-        .from("utilisateurs")
-        .select("*");
-
-    if (error) throw error;
-
-    console.log(data);
-
-} catch (error) {
-    console.error(error);
-
-} finally {
+ window.addEventListener("load", function () {
     GlobalLoader.hide();
- }
+});
+
+// Sécurité supplémentaire
+setTimeout(function () {
+    GlobalLoader.hide();
+}, 10000);
 </script>
 </body>
 </html>
