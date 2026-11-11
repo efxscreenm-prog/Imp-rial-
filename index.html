@@ -76,9 +76,64 @@ dialog::backdrop{background:#0008}
 input.ed[type=checkbox]{width:auto;min-width:0}
 .idlogo{width:100%;max-width:420px;border-radius:8px;display:block;margin-bottom:8px}
 td.dc{position:sticky;right:0;background:var(--card);box-shadow:-8px 0 8px -8px #0004}th.dc{right:0;z-index:2}
+
+ .global-loader {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 15, 25, 0.92);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+    transition: opacity 0.3s ease;
+}
+
+.global-loader.hidden {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.loader-content {
+    text-align: center;
+    color: white;
+}
+
+.loader-spinner {
+    width: 55px;
+    height: 55px;
+    border: 5px solid #444;
+    border-top-color: #D4AF37;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: auto;
+}
+
+.loader-content h3 {
+    margin-top: 20px;
+    font-size: 19px;
+}
+
+.loader-content p {
+    color: #ccc;
+    font-size: 13px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
 </style>
 </head>
 <body>
+
+<div id="global-loader" class="global-loader">
+    <div class="loader-content">
+        <div class="loader-spinner"></div>
+        <h3>Veuillez patienter...</h3>
+        <p>Chargement en cours</p>
+    </div>
+</div>
+ 
 <div id="auth" style="display:flex;position:fixed;inset:0;z-index:70;background:var(--bg);align-items:flex-start;justify-content:center;padding:16px;overflow:auto"><div class="card" id="auth-c" style="width:min(460px,100%);margin:auto"></div></div>
 <header>
  <div class="top"><div class="brand"><img id="logo" class="logo" alt="La Cave Impériale"><div><h1>Gestion de stock de cave Impériale</h1><p class="sub" id="sub"></p><p class="sub" id="serv"></p><p class="sub" id="acct"></p><p class="sub" id="sync"></p></div></div><div class="hb"><button id="outb" type="button" hidden>Se déconnecter</button><button id="pwb" type="button">Mot de passe</button><button id="savef" type="button">Enregistrer</button><button id="reset" type="button">Réinitialiser</button><button id="theme" type="button">Thème sombre</button></div></div>
@@ -524,6 +579,68 @@ async function cloudInit(){if(!SBC.url||!SBC.anonKey||/COLLER/i.test(SBC.url+SBC
 function refresh(){calc();$('#ds').innerHTML=S.staff.map(x=>`<option value="${esc(x.c)}">${esc(x.nom+' '+x.pn)}</option>`).join('');dash();caisse();cmd();$('#dc').innerHTML=S.articles.map(a=>`<option value="${esc(a.c)}">${esc(a.n)}</option>`).join('');$('#du').innerHTML=[...new Set(S.articles.map(a=>a.u).filter(Boolean))].sort().map(n=>`<option value="${esc(n)}">`).join('');$('#dl').innerHTML=[...S.articles].map(a=>a.n).sort((a,b)=>a.localeCompare(b,'fr')).map(n=>`<option value="${esc(n)}">`).join('');G.forEach(g=>g.draw())}
 (function(){calc();refresh();const h0=location.hash.slice(1).replace(/[^a-z]/g,'');show(NAV.some(n=>n[0]===h0)?h0:'cmd')})();
 cloudInit();
+
+ const GlobalLoader = {
+
+    show() {
+        document
+            .getElementById("global-loader")
+            .classList.remove("hidden");
+    },
+
+    hide() {
+        document
+            .getElementById("global-loader")
+            .classList.add("hidden");
+    }
+};
+
+// Masquer lorsque la page est entièrement chargée
+window.addEventListener("load", () => {
+    GlobalLoader.hide();
+});
+
+// Afficher lors de la navigation
+document.addEventListener("click", (e) => {
+    const link = e.target.closest("a");
+
+    if (!link) return;
+
+    if (
+        link.target === "_blank" ||
+        link.hasAttribute("download") ||
+        e.ctrlKey || e.metaKey || e.shiftKey ||
+        e.button !== 0
+    ) return;
+
+    const url = new URL(link.href);
+
+    if (url.origin !== location.origin) return;
+
+    if (url.pathname === location.pathname &&
+        url.search === location.search &&
+        url.hash) return;
+
+    GlobalLoader.show();
+});
+
+ GlobalLoader.show();
+
+try {
+    const { data, error } = await supabase
+        .from("utilisateurs")
+        .select("*");
+
+    if (error) throw error;
+
+    console.log(data);
+
+} catch (error) {
+    console.error(error);
+
+} finally {
+    GlobalLoader.hide();
+ }
 </script>
 </body>
 </html>
