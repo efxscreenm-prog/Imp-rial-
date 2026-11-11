@@ -133,7 +133,7 @@ td.dc{position:sticky;right:0;background:var(--card);box-shadow:-8px 0 8px -8px 
     <div class="loader-content">
         <div class="loader-spinner"></div>
         <h3>Veuillez patienter...</h3>
-        <p>Chargement en cours</p>
+        <p>Nous chargeons le contenu!</p>
     </div>
 </div>
  
@@ -584,57 +584,32 @@ function refresh(){calc();$('#ds').innerHTML=S.staff.map(x=>`<option value="${es
 cloudInit();
 
  const GlobalLoader = {
-
+const GlobalLoader = {
     show() {
-        document
-            .getElementById("global-loader")
-            .classList.remove("hidden");
+        document.getElementById("global-loader")
+            ?.classList.remove("hidden");
     },
 
     hide() {
-        document
-            .getElementById("global-loader")
-            .classList.add("hidden");
+        document.getElementById("global-loader")
+            ?.classList.add("hidden");
     }
 };
 
-// Masquer lorsque la page est entièrement chargée
-window.addEventListener("load", () => {
-    GlobalLoader.hide();
-});
-
-// Afficher lors de la navigation
-document.addEventListener("click", (e) => {
-    const link = e.target.closest("a");
-
-    if (!link) return;
-
-    if (
-        link.target === "_blank" ||
-        link.hasAttribute("download") ||
-        e.ctrlKey || e.metaKey || e.shiftKey ||
-        e.button !== 0
-    ) return;
-
-    const url = new URL(link.href);
-
-    if (url.origin !== location.origin) return;
-
-    if (url.pathname === location.pathname &&
-        url.search === location.search &&
-        url.hash) return;
-
-    GlobalLoader.show();
-});
-
- window.addEventListener("load", function () {
+// Masquer le Loader dès que le DOM est prêt
+document.addEventListener("DOMContentLoaded", function () {
     GlobalLoader.hide();
 });
 
 // Sécurité supplémentaire
+window.addEventListener("load", function () {
+    GlobalLoader.hide();
+});
+
+// Masquage de secours après 8 secondes
 setTimeout(function () {
     GlobalLoader.hide();
-}, 10000);
+}, 8000);
 </script>
 </body>
 </html>
