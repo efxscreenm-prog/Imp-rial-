@@ -583,7 +583,6 @@ function refresh(){calc();$('#ds').innerHTML=S.staff.map(x=>`<option value="${es
 (function(){calc();refresh();const h0=location.hash.slice(1).replace(/[^a-z]/g,'');show(NAV.some(n=>n[0]===h0)?h0:'cmd')})();
 cloudInit();
 
- const GlobalLoader = {
 const GlobalLoader = {
     show() {
         document.getElementById("global-loader")
@@ -596,20 +595,27 @@ const GlobalLoader = {
     }
 };
 
-// Masquer le Loader dès que le DOM est prêt
-document.addEventListener("DOMContentLoaded", function () {
-    GlobalLoader.hide();
-});
+// Affichage initial
+GlobalLoader.show();
 
-// Sécurité supplémentaire
+// Masquage dès que le document est chargé
 window.addEventListener("load", function () {
     GlobalLoader.hide();
 });
 
-// Masquage de secours après 8 secondes
-setTimeout(function () {
-    GlobalLoader.hide();
-}, 8000);
+// Navigation entre les pages
+document.addEventListener("click", function (e) {
+    const link = e.target.closest("a");
+
+    if (!link || link.target === "_blank") return;
+
+    const url = new URL(link.href);
+
+    if (url.origin === location.origin &&
+        url.href !== location.href) {
+        GlobalLoader.show();
+    }
+});
 </script>
 </body>
 </html>
